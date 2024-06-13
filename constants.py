@@ -4,7 +4,6 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).cwd() 
 
-
 ### SHAREPOINT ###
 
 CREDENTIALS_PATH = PROJECT_ROOT / "credentials.json"
@@ -18,13 +17,9 @@ PASS = "password"
 DB_NAME = 'waste-management.db'
 DB_BACKUP_FILE = 'waste-management.backup'
 
-### SCALE ###
-
-VENDOR_ID = 0x1A86
-PRODUCT_ID = 0x7523
-
 ### TEGRITY ###
 
-TIMESTAMPS_PATH = "timestamps.json"
+TIMESTAMPS_PATH = PROJECT_ROOT / "timestamps.json"
 DB = "db"
 REPORT = "report"
+

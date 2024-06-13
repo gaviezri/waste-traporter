@@ -31,6 +31,7 @@ class Controller:
             this_month_entries = self.__db_driver.get_this_month_entries_by_type()
             report_path = self.__report_manager.create_report(this_month_entries)
             self.__sharepoint_driver.upload_file(report_path, overwrite=True)
+            os.remove(report_path)
             Tegrity.stamp(REPORT)
 
     def __db_dump_and_upload(self):
@@ -57,5 +58,3 @@ class Controller:
 
 
         self.__ui.start()
-
-

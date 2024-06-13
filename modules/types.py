@@ -18,3 +18,4 @@ class WasteType(Enum):
     WASTE="Waste"
 
 WeighingPayload = Tuple[WasteType, float]
+
