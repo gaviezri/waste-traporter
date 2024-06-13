@@ -24,11 +24,9 @@ class Controller:
         self.__db_driver.create_record(payload)
 
     def __create_monthly_report_if_needed(self):
-        def async_report_generation():
-            this_month_entries = self.__db_driver.get_this_month_entries_by_type()
-            report_path = self.__report_manager.create_report(this_month_entries)
-            self.__sharepoint_driver.upload_file(report_path)
-        Thread(target=async_report_generation).start()
+        this_month_entries = self.__db_driver.get_this_month_entries_by_type()
+        report_path = self.__report_manager.create_report(this_month_entries)
+        self.__sharepoint_driver.upload_file(report_path)
 
 
     def __db_dump_and_upload(self):
@@ -47,7 +45,7 @@ class Controller:
                 self.__backup_database_if_needed()
         def report_task():
             while True:
-                self.__
+                self.__create_monthly_report_if_needed()
         Thread(target=backup_task).start()
 
 
