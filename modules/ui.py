@@ -1,54 +1,77 @@
 import tkinter as tk
+import time
 
-class ScaleApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Scale Garbage")
+class ScaleUI:
+    def __init__(self, controller):
+        self.controller = controller
+        self.root = tk.Tk()
+        self.root.title("Waste Weighing App")
         
-        self.label = tk.Label(root, text="Place an item on the scale")
-        self.label.pack(pady=20)
+        # Create UI elements
+        self.lbl_status = tk.Label(self.root, text="Scale off", font=("Arial", 24))
+        self.lbl_status.pack(pady=50)
         
-        self.button_waste = tk.Button(root, text="Waste", command=self.record_waste)
-        self.button_recycle = tk.Button(root, text="Recycle", command=self.record_recycle)
+        self.btn_waste = tk.Button(self.root, text="Waste", width=10, command=lambda: self.__select_type("Waste"))
+        self.btn_waste.pack(pady=10)
         
-    def show_options(self, weight):
-        self.label.config(text=f"Weight: {weight}g\nChoose payload type:")
-        self.button_waste.pack(pady=10)
-        self.button_recycle.pack(pady=10)
+        self.btn_pmd = tk.Button(self.root, text="PMD", width=10, command=lambda: self.__select_type("PMD"))
+        self.btn_pmd.pack(pady=10)
         
-    def record_waste(self):
-        self.record_payload("waste")
+        self.btn_paper = tk.Button(self.root, text="Paper", width=10, command=lambda: self.__select_type("Paper"))
+        self.btn_paper.pack(pady=10)
         
-    def record_recycle(self):
-        self.record_payload("recycle")
+        # Initialize weight
+        self.current_weight = 0.0
+        self.last_weight = 0.0
         
-    def record_payload(self, payload):
-        self.label.config(text="Thank you, payload recorded. You can now remove it")
-        self.button_waste.pack_forget()
-        self.button_recycle.pack_forget()
-        
-        print(f'{{"type": "{payload_type}", "weight_grams": {self.weight}}}')
-        
-        # Turn off the screen until the weight is zero
-        self.root.update_idletasks()
-        self.root.after(1000, self.wait_for_zero_weight)
-        
-    def wait_for_zero_weight(self):
-        self.label.config(text="Place an item on the scale")
-        # Simulate turning off the screen (you might need to adjust this for your actual hardware)
-        self.root.update_idletasks()
-        self.root.attributes("-fullscreen", False)
-        
-def main():
-    root = tk.Tk()
-    app = ScaleApp(root)
-    root.attributes("-fullscreen", True)
-    
-    # Example weight, replace this with actual weight from the scale
-    weight = 123.45
-    app.show_options(weight)
-    
-    root.mainloop()
+        # Start monitoring weight change
+        self.__monitor_weight()
 
-if __name__ == "__main__":
-    main()
+    def __monitor_weight(self):
+        # Simulated weight change monitoring
+        while True:
+            # Replace with actual weight reading mechanism
+            time.sleep(1)  # Simulating weight change every second
+            new_weight = self.controller.get_current_weight()  # Assume controller method to get weight
+            
+            if new_weight != self.current_weight:
+                self.current_weight = new_weight
+                self.__display_prompt()
+
+    def __display_prompt(self):
+        # Wake up screen and display prompt
+        self.root.deiconify()  # Wake up the screen
+        
+        # Update status label
+        self.lbl_status.config(text=f"Choose waste type:")
+        
+        # Show buttons
+        self.btn_waste.pack()
+        self.btn_pmd.pack()
+        self.btn_paper.pack()
+
+        # Start a timer to go back to sleep after X seconds (e.g., 10 seconds)
+        self.root.after(10000, self.__go_to_sleep)  # 10000 milliseconds = 10 seconds
+
+    def __select_type(self, waste_type):
+        # Handle waste type selection
+        self.lbl_status.config(text=f"Thank you!")
+        self.btn_waste.pack_forget()
+        self.btn_pmd.pack_forget()
+        self.btn_paper.pack_forget()
+        
+        # Do something with the selected waste type, e.g., inform the controller
+        self.controller.process_waste_type(waste_type)
+
+        # Go back to sleep after a brief acknowledgment
+        self.root.after(5000, self.__go_to_sleep)  # 3000 milliseconds = 3 seconds
+
+    def __go_to_sleep(self):
+        # Hide UI and go to sleep mode
+        self.root.withdraw()  # Hide the UI window
+        self.lbl_status.config(text="Scale off")
+        self.current_weight = 0.0
+
+    def start(self):
+        # Start the tkinter main loop
+        self.root.mainloop()
