@@ -5,8 +5,8 @@ class WasteType(Enum):
     """
     waste type enum 
     """
-    PMD=0
-    PAPER=1
-    WASTE=2
+    PMD="PWD"
+    PAPER="Paper"
+    WASTE="Waste"
 
 WeighingPayload = Tuple[WasteType, float]

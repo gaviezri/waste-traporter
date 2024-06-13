@@ -1,9 +1,6 @@
 from typing import Any, Generator
 from usb.core import find as find_device, Device
-import usb.util
-
-VENDOR_ID = 0x1A86
-PRODUCT_ID = 0x7523
+from constants import VENDOR_ID, PRODUCT_ID
 
 class Driver:
         
@@ -34,7 +31,7 @@ class Driver:
             else:
                 stable_count = 0
             
-            if stable_count >= 8:
+            if stable_count >= 10:
                 return weight
             
             last_weight = weight
