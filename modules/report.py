@@ -58,7 +58,6 @@ class ReportManager:
     
     def __add_sheet(self, df, sheet_name: str):
         sheet = self.workbook.create_sheet(title=sheet_name)
-
         for i, row in enumerate(dataframe_to_rows(df, index=True, header=True)):
             if i != 1:
                 sheet.append(row)
