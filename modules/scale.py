@@ -1,11 +1,13 @@
 from typing import Any, Generator
 from usb.core import find as find_device, Device
-from constants import VENDOR_ID, PRODUCT_ID
 
 class Driver:
+
+    VENDOR_ID = 0x1A86
+    PRODUCT_ID = 0x7523
         
     def __init__(self):
-        self._device:(Generator[Device, Any, None] | None) = find_device(idVendor=VENDOR_ID, idProduct=PRODUCT_ID)
+        self._device:(Generator[Device, Any, None] | None) = find_device(idVendor=self.VENDOR_ID, idProduct=self.PRODUCT_ID)
         if self._device is None:
             raise ValueError("Scale Not Found - please make sure it is connected!")
     

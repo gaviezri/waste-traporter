@@ -1,15 +1,9 @@
 from sqlite3 import connect
 from collections import defaultdict
-from datetime import datetime, date, time
+from datetime import datetime
 from constants import DB_NAME
-from dataclasses import dataclass
-from modules.types import WeighingPayload
+from modules.types import WeighingEntry, WeighingPayload
 
-@dataclass
-class WeighingEntry:
-    weight: float
-    date_recorded: date
-    time_recorded: time
 
 class DatabaseDriver:
     def __init__(self):
@@ -38,8 +32,7 @@ class DatabaseDriver:
         return self.__cursor.fetchall()
 
     def update_record(self, record_id: int, payload: WeighingPayload):
-        type_str = payload[0].name
-        weight = payload[1]
+        type_str, weight = payload
         self.__cursor.execute("UPDATE waste_records SET type=?, weight=? WHERE id=?", (type_str, weight, record_id))
         self.__conn.commit()
 
@@ -71,3 +64,9 @@ class DatabaseDriver:
                               (f"{current_year}-{current_month:02}",))
         rows = self.__cursor.fetchall()
         return process_rows(rows)
+    
+    # def get_last_date_recorded(self):
+    #     self.__cursor.execute("SELECT MAX(date_recorded) AS last_recorded_date FROM waste_records")
+    #     date_recorded_str = self.__cursor.fetchall()
+    #     return datetime.strptime(date_recorded_str, "%Y-%m-%d").date()
+        
