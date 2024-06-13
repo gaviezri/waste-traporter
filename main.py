@@ -1,4 +1,3 @@
-from constants import CREDENTIALS_PATH
 from modules.report import test
 
 def main():
