@@ -22,3 +22,9 @@ DB_BACKUP_FILE = 'waste-management.backup'
 
 VENDOR_ID = 0x1A86
 PRODUCT_ID = 0x7523
+
+### TEGRITY ###
+
+TIMESTAMPS_PATH = "timestamps.json"
+DB = "db"
+REPORT = "report"
