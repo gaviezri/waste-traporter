@@ -1,7 +1,7 @@
 from typing import Any, Generator
 from usb.core import find as find_device, Device
 
-class Driver:
+class ScaleDriver:
 
     VENDOR_ID = 0x1A86
     PRODUCT_ID = 0x7523

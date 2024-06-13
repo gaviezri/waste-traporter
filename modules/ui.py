@@ -1,5 +1,5 @@
 import tkinter as tk
-import time
+
 
 class ScaleUI:
     def __init__(self, controller):
@@ -24,14 +24,13 @@ class ScaleUI:
         self.current_weight = 0.0
         self.last_weight = 0.0
         
-        # Start monitoring weight change
-        self.__monitor_weight()
+
 
     def __monitor_weight(self):
         # Simulated weight change monitoring
         while True:
             # Replace with actual weight reading mechanism
-            time.sleep(1)  # Simulating weight change every second
+            
             new_weight = self.controller.get_current_weight()  # Assume controller method to get weight
             
             if new_weight != self.current_weight:
