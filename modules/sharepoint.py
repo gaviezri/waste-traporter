@@ -1,11 +1,13 @@
-from typing import Dict
-from constants import USER, PASS, SITE_URL, FOLDER_URL
+import json
+from constants import CONFIG_PATH, CREDENTIALS, USER, PASS, SITE_URL, FOLDER_URL
 from office365.sharepoint.client_context import ClientContext
 from office365.runtime.auth.user_credential import UserCredential
 from office365.sharepoint.files.file import File
 
 class SharePointDriver:
-    def __init__(self, credentials:Dict):
+    def __init__(self):
+        with open(CONFIG_PATH) as config:
+            credentials = json.load(config)[CREDENTIALS]
         self.__credentials = UserCredential(credentials[USER], credentials[PASS])
         self.__ctx = None
         
@@ -35,3 +37,5 @@ class SharePointDriver:
         target_folder = self.__ctx.web.get_folder_by_server_relative_url(FOLDER_URL)
         with open(file_path, 'rb') as file_content:
             target_folder.upload_file(file_name, file_content.read())
+
+

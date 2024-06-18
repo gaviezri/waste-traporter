@@ -1,29 +1,27 @@
 import datetime
 import os
-import json
 from modules.db import DatabaseDriver
 from modules.scale import ScaleDriver
 from modules.sharepoint import SharePointDriver
 from modules.report import ReportManager
-from modules.types import WeighingPayload
-from modules.ui import ScaleUI
+from modules.types import AtomicFloat, WeighingPayload
+from modules.ui import UIDriver
 from modules.tegrity import Tegrity
-from atomic_operator import AtomicFloat
-from constants import CREDENTIALS_PATH, DB, DB_BACKUP_FILE, REPORT
+from constants import DB, DB_BACKUP_FILE, REPORT
 
 def file_modification_date(file_path):
     return datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
 
 class Controller:
     def __init__(self):
-        with open(CREDENTIALS_PATH.as_posix(), 'r') as credentials_json:
-            self.__sharepoint_driver = SharePointDriver(json.load(credentials_json))
 
+        self.__sharepoint_driver = SharePointDriver()
         self.__report_manager = ReportManager()
         self.__db_driver = DatabaseDriver()
-        # self.__scale_driver = ScaleDriver()
-        self.__ui = ScaleUI(self)
-        self.atomic_weight = AtomicFloat(0.0)
+        self.__atomic_weight = AtomicFloat()
+        # scale will set value of atomic float asynchronously on a daemon thread
+        # self.__scale_driver = ScaleDriver(self.__atomic_weight.set)
+        self.__ui = UIDriver(self)
         
     def __task_backup_database(self):
         if Tegrity.is_backup_needed():
@@ -48,8 +46,9 @@ class Controller:
     def record_weighing(self, payload: WeighingPayload):
         self.__db_driver.create_record(payload)
 
-    def get_current_weight(self):
-        return self.atomic_weight
+    def get_weight(self):
+        # return self.__atomic_weight.get()
+        return 10
 
     def run(self):
         self.__ui.start()
