@@ -4,14 +4,19 @@ from datetime import datetime
 
 from constants import DB, REPORT, TIMESTAMPS_PATH
 
+_8PM = 20
+SATURDAY = 5
 class Tegrity:
     @staticmethod
     def is_report_needed():
-        return Tegrity._is_action_needed(REPORT)
+        now = datetime.now()
+        hour = now.time().hour
+        weekday = now.weekday()
+        return Tegrity._is_action_needed(REPORT) and hour == _8PM and weekday == SATURDAY
 
     @staticmethod
     def is_backup_needed():
-        return Tegrity._is_action_needed(DB)
+        return Tegrity._is_action_needed(DB) 
 
     @staticmethod
     def _is_action_needed(action):

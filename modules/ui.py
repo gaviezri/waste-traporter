@@ -73,4 +73,5 @@ class ScaleUI:
 
     def start(self):
         # Start the tkinter main loop
+        Thread
         self.root.mainloop()
