@@ -19,8 +19,7 @@ class Controller:
         self.__report_manager = ReportManager()
         self.__db_driver = DatabaseDriver()
         self.__atomic_weight = AtomicFloat()
-        # scale will set value of atomic float asynchronously on a daemon thread
-        # self.__scale_driver = ScaleDriver(self.__atomic_weight.set)
+        self.__scale_driver = ScaleDriver(self.__atomic_weight.set)
         self.__ui = UIDriver(self)
         
     def __task_backup_database(self):
@@ -47,14 +46,10 @@ class Controller:
         self.__db_driver.create_record(payload)
 
     def get_weight(self):
-        # return self.__atomic_weight.get()
-        return 10
+        return self.__atomic_weight.get()
 
     def run(self):
         self.__ui.start()
         while True:
             for task in [self.__task_backup_database, self.__task_create_monthly_report]:
                 task()
-        
-        # ui runs in a different thread interacting with controller atomic attributes
-
