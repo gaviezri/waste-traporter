@@ -63,7 +63,7 @@ class UIDriver:
         self.window = sg.Window('Scale UI', self.layouts[self.__stage](), size=(800,480), no_titlebar=True, grab_anywhere=True, element_justification='c', finalize=True)
 
     def __update_weight_label(self, new_weight):
-        self.window[WEIGHT].update(f'Weight: {new_weight:.3f}')
+        self.window[WEIGHT].update(f'Weight: {new_weight:.3f} kg')
 
     def __load_layout(self, action = None):
         new_window = sg.Window('Scale UI', self.layouts[self.__stage](), size=(800,480), no_titlebar=True, grab_anywhere=True, element_justification='c', finalize=True)
