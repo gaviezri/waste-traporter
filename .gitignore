@@ -2,5 +2,5 @@
 *__pycache__*
 *.log
 .vscode/
-credentials.json
+config.json
 2024*
