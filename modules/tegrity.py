@@ -27,19 +27,21 @@ class Tegrity:
         with open(TIMESTAMPS_PATH, 'r') as f:
             timestamps = json.load(f)
         
-        # Get current date month
-        current_month = datetime.now().month
+        now = datetime.now()
         
-        # Check if action timestamp month matches current month
+        
         if action in timestamps:
             last_action_date = datetime.fromtimestamp(timestamps[action]).date()
-            return last_action_date.month != current_month
- 
+            is_new_month = last_action_date.month != ((now.month - 1 ) % 12) + 1
+            is_new_day = last_action_date.day != now.day
+            # backup of db happens daily while report happens monthly
+            return is_new_day if action == DB else is_new_month
         else:
             return True  # No timestamp found for action, action is needed
         
     @staticmethod
     def stamp(action):
+        # update timestamp
         if os.path.exists(TIMESTAMPS_PATH):
             with open(TIMESTAMPS_PATH, 'r') as f:
                 timestamps = json.load(f)

@@ -44,35 +44,43 @@ class DatabaseDriver:
         current_year = datetime.now().year
 
         last_month = current_month - 1 if current_month != JAN else DEC
-        last_month_year = current_year if current_month != JAN else current_year - 1
-        
-        self.__cursor.execute("DELETE FROM waste_records WHERE strftime('%Y-%m', date_recorded) = ?", (f"{last_month_year:04d}-{last_month:02d}",))
-        self.__conn.commit()
+        last_months_year = current_year if current_month != JAN else current_year - 1
 
+        return self.delete_specified_date_entries(last_month, last_months_year)
+    
     def dump_database(self, output_file: str):
         with open(output_file, 'w') as f:
             for line in self.__conn.iterdump():
                 f.write(f"{line}\n")
 
+    def delete_specified_date_entries(self, month, year):
+        self.__cursor.execute("DELETE FROM waste_records WHERE strftime('%Y-%m', date_recorded) = ?", (f"{year:04d}-{month:02d}",))
+        self.__conn.commit()
+
+    def get_specified_date_entries_by_type(self, month, year):
+        self.__cursor.execute("SELECT type, weight, date_recorded, time_recorded FROM waste_records WHERE strftime('%Y-%m', date_recorded) = ?",
+                              (f"{year:04d}-{month:02d}",))
+        rows = self.__cursor.fetchall()
+        return self.__process_rows(rows)
+    
+    def __process_rows(self, rows):
+        month_entries_by_type = defaultdict(list)
+        for row in rows:
+            type_str, weight, date_recorded_str, time_recorded_str = row
+            date_recorded = datetime.strptime(date_recorded_str, "%Y-%m-%d").date()
+            time_recorded = datetime.strptime(time_recorded_str, "%H:%M:%S").time()
+            entry = WeighingEntry(weight=weight, date_recorded=date_recorded, time_recorded=time_recorded)            
+            # Append the entry to the list for the corresponding type
+            month_entries_by_type[type_str].append(entry)
+        return month_entries_by_type
+
     def get_last_month_entries_by_type(self):
-        def process_rows(rows):
-            month_entries_by_type = defaultdict(list)
-            for row in rows:
-                type_str, weight, date_recorded_str, time_recorded_str = row
-                date_recorded = datetime.strptime(date_recorded_str, "%Y-%m-%d").date()
-                time_recorded = datetime.strptime(time_recorded_str, "%H:%M:%S").time()
-                entry = WeighingEntry(weight=weight, date_recorded=date_recorded, time_recorded=time_recorded)            
-                # Append the entry to the list for the corresponding type
-                month_entries_by_type[type_str].append(entry)
-            return month_entries_by_type
 
         current_month = datetime.now().month
         current_year = datetime.now().year
 
         month = current_month - 1 if current_month != JAN else DEC
         year = current_year if current_month != JAN else current_year - 1
+
+        return self.get_specified_date_entries_by_type(month, year)
         
-        self.__cursor.execute("SELECT type, weight, date_recorded, time_recorded FROM waste_records WHERE strftime('%Y-%m', date_recorded) = ?",
-                              (f"{year:04d}-{month:02d}",))
-        rows = self.__cursor.fetchall()
-        return process_rows(rows)

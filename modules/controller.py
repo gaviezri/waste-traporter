@@ -1,5 +1,6 @@
 import datetime
 import os
+from threading import Thread
 from modules.db import DatabaseDriver
 from modules.scale import ScaleDriver
 from modules.sharepoint import SharePointDriver
@@ -33,9 +34,9 @@ class Controller:
             
             this_month_entries = self.__db_driver.get_last_month_entries_by_type()
             report_path = self.__report_manager.create_report(this_month_entries)
-            self.__sharepoint_driver.upload_file(report_path, overwrite=True)
-            os.remove(report_path)
-            self.__db_driver.delete_last_month_entries()
+            if self.__sharepoint_driver.upload_file(report_path, overwrite=True):
+                os.remove(report_path)
+                self.__db_driver.delete_last_month_entries()
             Tegrity.stamp(REPORT)
 
     def __db_dump_and_upload(self):
@@ -49,7 +50,11 @@ class Controller:
         return self.__atomic_weight.get()
 
     def run(self):
+        def background_tasks():
+            while True:
+                for task in [self.__task_backup_database, self.__task_create_monthly_report]:
+                    task()
+        Thread(target=background_tasks, daemon=True).start()
+
         self.__ui.start()
-        while True:
-            for task in [self.__task_backup_database, self.__task_create_monthly_report]:
-                task()
+        

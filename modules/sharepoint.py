@@ -29,9 +29,11 @@ class SharePointDriver:
             if overwrite:
                 self.__delete_if_exists(file_name)
             self.__upload_to_sharepoint(file_path, file_name)
-            pass
+            success = True
         except Exception as e:
-            print(e)
+            success = False
+        finally:
+            return success
 
     def __upload_to_sharepoint(self, file_path, file_name):
         target_folder = self.__ctx.web.get_folder_by_server_relative_url(FOLDER_URL)
