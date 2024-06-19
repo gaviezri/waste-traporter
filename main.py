@@ -1,10 +1,10 @@
-from modules.report import test
+from modules.controller import Controller
 
-def main():
-    # scale_driver = ScaleDriver()
-    # print(scale_driver.read_stable_weight_kg())
-    # reporter = SharePointManager(json.load(open(CREDENTIALS_PATH)))
-    test()
+
+if __name__ == "__main__":
+    Controller().run()
     
 
-main()
+    
+
+

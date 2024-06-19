@@ -1,60 +1,60 @@
 import datetime
 import os
-import json
-from constants import CREDENTIALS_PATH, DB, DB_BACKUP_FILE, REPORT
+from threading import Thread
 from modules.db import DatabaseDriver
+from modules.scale import ScaleDriver
 from modules.sharepoint import SharePointDriver
 from modules.report import ReportManager
-from modules.types import WeighingPayload
-from modules.ui import ScaleUI
+from modules.types import AtomicFloat, WeighingPayload
+from modules.ui import UIDriver
 from modules.tegrity import Tegrity
-from threading import Thread
+from constants import DB, DB_BACKUP_FILE, REPORT
 
 def file_modification_date(file_path):
     return datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
 
 class Controller:
     def __init__(self):
-        with open(CREDENTIALS_PATH.as_posix(), 'r') as credentials_json:
-            self.__sharepoint_driver = SharePointDriver(json.load(credentials_json))
-        self.__db_driver = DatabaseDriver()
-        self.__report_manager = ReportManager()
-        self.__ui = ScaleUI(self)
-        
-    def record_weighing(self, payload: WeighingPayload):
-        self.__db_driver.create_record(payload)
 
-    def __create_monthly_report_if_needed(self):
-        # new month and a report for this month have not been produced yet
-        # single method of report manager
+        self.__sharepoint_driver = SharePointDriver()
+        self.__report_manager = ReportManager()
+        self.__db_driver = DatabaseDriver()
+        self.__atomic_weight = AtomicFloat()
+        self.__scale_driver = ScaleDriver(self.__atomic_weight.set)
+        self.__ui = UIDriver(self)
+        
+    def __task_backup_database(self):
+        if Tegrity.is_backup_needed():
+            
+            self.__db_dump_and_upload()
+            Tegrity.stamp(DB)
+
+    def __task_create_monthly_report(self):
         if Tegrity.is_report_needed():
-            this_month_entries = self.__db_driver.get_this_month_entries_by_type()
+            
+            this_month_entries = self.__db_driver.get_last_month_entries_by_type()
             report_path = self.__report_manager.create_report(this_month_entries)
-            self.__sharepoint_driver.upload_file(report_path, overwrite=True)
-            os.remove(report_path)
+            if self.__sharepoint_driver.upload_file(report_path, overwrite=True):
+                os.remove(report_path)
+                self.__db_driver.delete_last_month_entries()
             Tegrity.stamp(REPORT)
 
     def __db_dump_and_upload(self):
         self.__db_driver.dump_database(DB_BACKUP_FILE)
         self.__sharepoint_driver.upload_file(DB_BACKUP_FILE, overwrite=True)
 
-    def __backup_database_if_needed(self):
-        if Tegrity.is_backup_needed():
-            self.__db_dump_and_upload()
-            Tegrity.stamp(DB)
+    def record_weighing(self, payload: WeighingPayload):
+        self.__db_driver.create_record(payload)
+
+    def get_weight(self):
+        return self.__atomic_weight.get()
 
     def run(self):
-        
-        def backup_task():
+        def background_tasks():
             while True:
-                self.__backup_database_if_needed()
-        
-        def report_task():
-            while True:
-                self.__create_monthly_report_if_needed()
-
-        for task in [report_task, backup_task]:
-            Thread(target=task).start()
-
+                for task in [self.__task_backup_database, self.__task_create_monthly_report]:
+                    task()
+        Thread(target=background_tasks, daemon=True).start()
 
         self.__ui.start()
+        

@@ -4,7 +4,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from typing import Dict, List
 from datetime import datetime
-from modules.types import WasteType, WeighingEntry
+from modules.types import TrashType, WeighingEntry
 from constants import PROJECT_ROOT
 
 class ReportManager:
@@ -17,13 +17,13 @@ class ReportManager:
     def __init__(self):
         self.workbook = None
 
-    def create_report(self, weighing_entries: Dict[WasteType ,List[WeighingEntry]]) -> str:
+    def create_report(self, weighing_entries: Dict[TrashType ,List[WeighingEntry]]) -> str:
         now = datetime.now()
         report_path = PROJECT_ROOT / f"{now.year}-{now.month}.xlsx" 
 
         type_to_df = {}
         
-        for _type in [WasteType.WASTE, WasteType.PMD, WasteType.PAPER]:
+        for _type in [TrashType.WASTE, TrashType.PMD, TrashType.PAPER]:
            type_to_df[_type] = self.__create_df_from_entries(weighing_entries[_type.value])
 
         self.workbook = Workbook(write_only=True)
@@ -38,7 +38,7 @@ class ReportManager:
 
         return report_path
 
-    def __create_summary_df(self, weighing_entries: Dict[WasteType ,List[WeighingEntry]]):
+    def __create_summary_df(self, weighing_entries: Dict[TrashType ,List[WeighingEntry]]):
         df = DataFrame(columns=[self.WASTE_TYPE, self.TOTAL_KG])
         
         for waste_type, entries in weighing_entries.items():
@@ -71,9 +71,9 @@ class ReportManager:
 def test():
     now = datetime.now()
     entries = {
-            WasteType.PMD.value : [WeighingEntry(100, now.date(), now.time())],
-            WasteType.PAPER.value : [WeighingEntry(150, now.date(), now.time())],
-            WasteType.WASTE.value : [WeighingEntry(200, now.date(), now.time())],
+            TrashType.PMD.value : [WeighingEntry(100, now.date(), now.time())],
+            TrashType.PAPER.value : [WeighingEntry(150, now.date(), now.time())],
+            TrashType.WASTE.value : [WeighingEntry(200, now.date(), now.time())],
         }
 
     ReportManager().create_report(entries)

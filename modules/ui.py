@@ -1,77 +1,121 @@
-import tkinter as tk
-import time
+from time import sleep
+import PySimpleGUI as sg
+from constants import CANCEL, WEIGHT, WHITE, GREEN
+from modules.types import TrashType
 
-class ScaleUI:
+sg.theme_background_color(WHITE)
+sg.theme_text_color(GREEN)
+
+def VPush():
+    return sg.VPush(background_color=WHITE)
+
+def Push():
+    return sg.Push(background_color=WHITE)
+
+
+class UIDriver:
     def __init__(self, controller):
-        self.controller = controller
-        self.root = tk.Tk()
-        self.root.title("Waste Weighing App")
-        
-        # Create UI elements
-        self.lbl_status = tk.Label(self.root, text="Scale off", font=("Arial", 24))
-        self.lbl_status.pack(pady=50)
-        
-        self.btn_waste = tk.Button(self.root, text="Waste", width=10, command=lambda: self.__select_type("Waste"))
-        self.btn_waste.pack(pady=10)
-        
-        self.btn_pmd = tk.Button(self.root, text="PMD", width=10, command=lambda: self.__select_type("PMD"))
-        self.btn_pmd.pack(pady=10)
-        
-        self.btn_paper = tk.Button(self.root, text="Paper", width=10, command=lambda: self.__select_type("Paper"))
-        self.btn_paper.pack(pady=10)
-        
-        # Initialize weight
-        self.current_weight = 0.0
-        self.last_weight = 0.0
-        
-        # Start monitoring weight change
-        self.__monitor_weight()
+        # Define layouts
+        def screen1_layout():
+            return [
+                [VPush()],
+                [Push(), sg.Text('Ready', size=(15, 1), justification='center', font=('Helvetica', 25), background_color=WHITE), Push()],
+                [VPush()]
+            ]   
 
-    def __monitor_weight(self):
-        # Simulated weight change monitoring
-        while True:
-            # Replace with actual weight reading mechanism
-            time.sleep(1)  # Simulating weight change every second
-            new_weight = self.controller.get_current_weight()  # Assume controller method to get weight
+        def screen2_layout():
+            return [
+                [VPush()],
+                [Push(),
+                    sg.Text('', size=(15, 1), justification='center', font=('Helvetica', 24), key=WEIGHT, background_color=WHITE),
+                    Push()],
+                [VPush()],
+                [Push(), 
+                    sg.Text('Which one is it?', size=(15, 1), justification='center', font=('Helvetica', 16), background_color=WHITE),
+                    Push()],
+                [VPush()],
+                [Push(),
+                    sg.Button('PMD', size=(10, 2), button_color=GREEN, enable_events=True, key=TrashType.PMD),
+                    sg.Button('Paper', size=(10, 2), button_color=GREEN, enable_events=True, key=TrashType.PAPER),
+                    sg.Button('Waste', size=(10, 2), button_color=GREEN, enable_events=True, key=TrashType.WASTE), 
+                    Push()],
+                [VPush()],
+                [Push(), sg.Button('Cancel', button_color="#e23a08", enable_events=True, key=CANCEL), Push()],
+                [VPush()],
+            ]
+
+        def screen3_layout():
+            return [
+                [VPush()],
+                [Push(), sg.Text('Saved.', size=(15, 1), justification='center', font=('Helvetica', 20), background_color=WHITE), Push()],
+                [Push(), sg.Text('Thank You', size=(15, 1), justification='center', font=('Helvetica', 14), background_color=WHITE), Push()],
+                [VPush()],
+            ]   
+
+        self.layouts = {
+            1: screen1_layout,
+            2: screen2_layout,
+            3: screen3_layout
+        }
+        
+        self.__controller = controller 
+        self.__stage = 1
+        self.__recorded_weight = None
+        self.window = sg.Window('Scale UI', self.layouts[self.__stage](), size=(800,480), no_titlebar=True, grab_anywhere=True, element_justification='c', finalize=True)
+
+    def __update_weight_label(self, new_weight):
+        self.window[WEIGHT].update(f'Weight: {new_weight:.3f} kg')
+
+    def __load_layout(self, action = None):
+        new_window = sg.Window('Scale UI', self.layouts[self.__stage](), size=(800,480), no_titlebar=True, grab_anywhere=True, element_justification='c', finalize=True)
+        new_window.Shown = True
+        self.window.close()
+        self.window = new_window
+        if action is not None:
+            action()
+
+    def __handle_stage_one(self):
+        self.__recorded_weight = None
+        weight = self.__controller.get_weight()  # Replace with actual weight retrieval logic
+        if weight > 0.005:
+            # Once weight condition is met, switch to layout 2
+            self.__recorded_weight = weight
+            self.__stage = 2
+            self.__load_layout()
+            self.__update_weight_label(weight)
+    
+    def __handle_stage_two(self, event):
+        if isinstance(event, TrashType):
+            self.__controller.record_weighing((event, self.__recorded_weight))
+            self.__stage = 3
+            self.__load_layout()
+        
+        elif event == CANCEL:
+            self.__stage = 1
+            self.__load_layout()
             
-            if new_weight != self.current_weight:
-                self.current_weight = new_weight
-                self.__display_prompt()
+            
 
-    def __display_prompt(self):
-        # Wake up screen and display prompt
-        self.root.deiconify()  # Wake up the screen
+    def __handle_stage_three(self):
+        sleep(2)
+        self.__stage = 1
+        self.__load_layout()
+
         
-        # Update status label
-        self.lbl_status.config(text=f"Choose waste type:")
-        
-        # Show buttons
-        self.btn_waste.pack()
-        self.btn_pmd.pack()
-        self.btn_paper.pack()
 
-        # Start a timer to go back to sleep after X seconds (e.g., 10 seconds)
-        self.root.after(10000, self.__go_to_sleep)  # 10000 milliseconds = 10 seconds
-
-    def __select_type(self, waste_type):
-        # Handle waste type selection
-        self.lbl_status.config(text=f"Thank you!")
-        self.btn_waste.pack_forget()
-        self.btn_pmd.pack_forget()
-        self.btn_paper.pack_forget()
-        
-        # Do something with the selected waste type, e.g., inform the controller
-        self.controller.process_waste_type(waste_type)
-
-        # Go back to sleep after a brief acknowledgment
-        self.root.after(5000, self.__go_to_sleep)  # 3000 milliseconds = 3 seconds
-
-    def __go_to_sleep(self):
-        # Hide UI and go to sleep mode
-        self.root.withdraw()  # Hide the UI window
-        self.lbl_status.config(text="Scale off")
-        self.current_weight = 0.0
 
     def start(self):
-        # Start the tkinter main loop
-        self.root.mainloop()
+        # Main event loop
+        while True:
+            event, _ = self.window.read(timeout=50)  # 100 ms timeout for polling
+            if event == sg.WIN_CLOSED:
+                break
+
+            if self.__stage == 1:
+                self.__handle_stage_one()
+            elif self.__stage == 2:
+                self.__handle_stage_two(event)
+            elif self.__stage == 3:
+               self.__handle_stage_three()
+
+
