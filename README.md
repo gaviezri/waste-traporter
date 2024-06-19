@@ -9,8 +9,5 @@ The program stores the data on sqlite server.
 Once a month a report is generated and uploaded to sharepoint.
 every data the db is backed up via dump to sharepoint.
 
-< ! > The sharepoint driver expects "credentials.json" at the project's root 
-{
-  "username": <email>,
-  "password": <pass...>
-}
+on the pi:
+$> traporter-env && traporter-run
