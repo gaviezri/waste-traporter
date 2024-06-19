@@ -4,7 +4,7 @@ from constants import CANCEL, WEIGHT, WHITE, GREEN
 from modules.types import TrashType
 
 sg.theme_background_color(WHITE)
-sg.theme_text_color('green')
+sg.theme_text_color(GREEN)
 
 def VPush():
     return sg.VPush(background_color=WHITE)
@@ -19,7 +19,7 @@ class UIDriver:
         def screen1_layout():
             return [
                 [VPush()],
-                [Push(), sg.Text('Ready', size=(15, 1), justification='center', font=('Helvetica', 20), background_color=WHITE), Push()],
+                [Push(), sg.Text('Ready', size=(15, 1), justification='center', font=('Helvetica', 25), background_color=WHITE), Push()],
                 [VPush()]
             ]   
 
@@ -27,19 +27,20 @@ class UIDriver:
             return [
                 [VPush()],
                 [Push(),
-                    sg.Text('', size=(15, 1), justification='center', font=('Helvetica', 20), key=WEIGHT, background_color=WHITE),
+                    sg.Text('', size=(15, 1), justification='center', font=('Helvetica', 24), key=WEIGHT, background_color=WHITE),
                     Push()],
                 [VPush()],
                 [Push(), 
-                    sg.Text('Choose Type:', size=(15, 1), justification='center', font=('Helvetica', 14), background_color=WHITE),
+                    sg.Text('Which one is it?', size=(15, 1), justification='center', font=('Helvetica', 16), background_color=WHITE),
                     Push()],
+                [VPush()],
                 [Push(),
                     sg.Button('PMD', size=(10, 2), button_color=GREEN, enable_events=True, key=TrashType.PMD),
                     sg.Button('Paper', size=(10, 2), button_color=GREEN, enable_events=True, key=TrashType.PAPER),
                     sg.Button('Waste', size=(10, 2), button_color=GREEN, enable_events=True, key=TrashType.WASTE), 
                     Push()],
                 [VPush()],
-                [Push(), sg.Button('Cancel', button_color="red", enable_events=True, key=CANCEL), Push()],
+                [Push(), sg.Button('Cancel', button_color="#e23a08", enable_events=True, key=CANCEL), Push()],
                 [VPush()],
             ]
 
@@ -106,7 +107,7 @@ class UIDriver:
     def start(self):
         # Main event loop
         while True:
-            event, _ = self.window.read(timeout=100)  # 100 ms timeout for polling
+            event, _ = self.window.read(timeout=50)  # 100 ms timeout for polling
             if event == sg.WIN_CLOSED:
                 break
 
@@ -117,6 +118,4 @@ class UIDriver:
             elif self.__stage == 3:
                self.__handle_stage_three()
 
-
-        self.window.close()
 

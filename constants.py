@@ -34,5 +34,5 @@ BASE16 = 16
 CANCEL = "-CANCEL-"
 WEIGHT = '-WEIGHT-'
 WHITE = 'white'
-GREEN = "green"
+GREEN = "#543CC5"
 
